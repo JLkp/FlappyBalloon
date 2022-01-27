@@ -2,7 +2,7 @@ import pgzrun
 from random import randint
 import pygame
 from pygame import gfxdraw, key
-from pygame.locals import K_SPACE, K_s
+from pygame.locals import K_SPACE
 import sys
 
 pygame.init()
@@ -18,6 +18,7 @@ house = Actor("house")
 egg1 = Actor("one-egg")
 egg2 = Actor("one-egg")
 
+
 score = 0
 start_game = False
 game_over = False
@@ -25,6 +26,8 @@ game_over = False
 wallleft = Rect(0,0,0,600)
 wallbottom = Rect(0,600,800,0)
 walltop = Rect(0,0,800,0)
+
+
 
 def botOn():
     #Ausweichen House
@@ -72,35 +75,55 @@ def place_actors():
     egg2.x = randint(0,800)
     egg2.y = 1
 
+start_game = 5 #Um Spiel nach 5s zu starten
+
+def start_timer():
+    global start_game
+    start_game = start_game - 1
+
+startSpeed = 0
+
 def draw():
     global game_over
     global start_game
+    global startSpeed
     mouse = pygame.mouse.get_pos()
     
     if game_over:
-        screen.fill("pink")
+        screen.clear()
+        screen.blit("background", (0,0))
         screen.draw.text("Score: " + str(score), topleft=(10, 10), fontsize=60)
         stop()
     else:
-        game_over = False
-        screen.blit("background", (0,0))
-        screen.draw.text("Score: " + str(score), topleft=(10,10))
-        ballon.draw()
-        bird.draw()
-        house.draw()
-        egg1.draw()
-        egg2.draw()
-                
-        pygame.gfxdraw.rectangle(surface, wallleft, color)
-        pygame.gfxdraw.rectangle(surface, wallbottom, color)
-        pygame.gfxdraw.rectangle(surface, walltop, color)
-        pygame.display.flip()
+        if start_game < 0:
+            game_over = False
+            screen.blit("background", (0,0))
+            screen.draw.text("Score: " + str(score), topleft=(10,10))
+            ballon.draw()
+            bird.draw()
+            house.draw()
+            egg1.draw()
+            egg2.draw()
+                    
+            pygame.gfxdraw.rectangle(surface, wallleft, color)
+            pygame.gfxdraw.rectangle(surface, wallbottom, color)
+            pygame.gfxdraw.rectangle(surface, walltop, color)
+            pygame.display.flip()
+            
+            startSpeed = 1
+            
+        else:
+            screen.clear()
+            screen.draw.text("Game starts in: " + str(start_game), topleft=(50,50),fontsize=50)
+            screen.draw.text("Avoid the House, Bird and Eggs to win!", topleft=(50,100))
+            screen.draw.text("Press Space if you panic", topleft=(50,120))
+            
         
 def update():
     global score
     global game_over
     global start_game
-    global startTimer
+    global startSpeed
 
     pressed_keys = pygame.key.get_pressed()
     
@@ -143,15 +166,16 @@ def update():
         game_over = True
 
     #Für den Bot
+    BotOnOff = 0
     if pressed_keys[K_SPACE]:
         botOn()
-    
-def movement():
-    bird.x = bird.x - 2
-    house.x = house.x - 2
-    egg1.y = egg1.y + 3
-    egg2.y = egg2.y + 2
-
+        
+    if startSpeed == 1:
+        bird.x = bird.x - 2
+        house.x = house.x - 2
+        egg1.y = egg1.y + 3
+        egg2.y = egg2.y + 2
+        
 def stop():
     global score
     bird.x = 0
@@ -167,10 +191,7 @@ def stop():
         ballon.y = ballon.y
     elif keyboard.down:
         ballon.y = ballon.y
-
-
-
-clock.schedule_interval(movement, 0.01)
+        
+clock.schedule_interval(start_timer, 1)
 place_actors()
-
 pgzrun.go()
